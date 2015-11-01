@@ -9,7 +9,6 @@ p <- ggplot(data, aes(Sepal.Length, Sepal.Width))
 p + geom_point((aes(colour = cluster)))
 #p + geom_point((aes(colour = factor(cluster))))
 
-#hmm?
 
 
 
@@ -49,9 +48,12 @@ barrycenter <- function(matrix,centernumber){
 
 
 ##----- main kmeans method ----------------------------##
-
 kmean <- function(data,k) {
-  r <- dim(data)[1]; k <- k
+  r <- dim(data)[1]
+  minmax <- range(data[,1])[2]-range(data[,1])[1] + range(data[,2])[2]-range(data[,2])[1]
+  threshold <- ceiling(log(minmax, base=10))/100
+  
+  #iteration <- 0 test
   
   # initial centroid
   cent.index <- floor( (r/k) * c(1:3) ) #floor(runif(k,0,r))
@@ -61,14 +63,21 @@ kmean <- function(data,k) {
   # distance matrix for updating cluster label
   dist <- matrix(0,nrow=1,ncol=k)
   
-  #do-while loop to be implemented do(repeat) while(change in centroids stead state)
-  for (m in c(1:10)) {
+  #do-while loop to do(repeat) while(change in centroids stead state)
+  repeat {
     #update cluster label based on new centroids
     data[,3] <- assign(data,centroids,k)
+    #iteration <- iteration + 1 test
     
+    temp <- centroids
     #update centroids
     for (i in c(1:k)) {
       centroids[i,] <- barrycenter(data,i)
     }
+    change <- sum((temp - centroids)^2)
+    # print(centroids) test
+    if(change <= threshold) break
   }
+  return(data[,3])
+  # print(iteration) test
 }
