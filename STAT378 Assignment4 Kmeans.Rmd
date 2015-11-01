@@ -1,3 +1,11 @@
+---
+title: "STAT 378 Assignment 4 Kmeans"
+output: pdf_document
+---
+
+R implementaiton of K-means clustering algorithm
+
+```{r}
 ##--- L2distance ------------------------------------------##
 # find the L2 distance between two vectors
 # vec1 : first vector
@@ -58,47 +66,6 @@ recenter <- function(mat,centernumber){
 }
 
 
-##---------- main kmeans method (simple iteration) ---------------------------##
-# mat: input matrix
-# k : number of cluters
-kmeanloop <- function(mat,k) {
-  r <- dim(mat)[1]; c <- dim(mat)[2] # dimensions
-  
-  ## non-random intial assignment for just tried
-  ## cent.index <- floor( (r/k) * c(1:3) ) #floor(runif(k,0,r))
-  ## centroids <- mat[cent.index,1:c]
-  ## centroids <- as.matrix(centroids) #non numeric ?.. have to step by step
-  ## dimnames(centroids) <- NULL
-
-  # initial centroid (uniform random)
-  max <- apply(mat,2,max); min <- apply(mat,2,min) 
-  # max and min of the features
-  centroids <- mapply(runif, k, min = min,max = max)
-  # generate k random vectors of length = number of features
-  # from uniform distribution of min and max of each features
-  
-  # distance matrix for updating cluster label
-  dist <- matrix(0,nrow=1,ncol=k)
-  
-  # initial assignment of the clusters
-  # (seperate b.c. restricting column numbers on L2 distance calculation later steps)
-  mat[,c+1] <- assign(mat,centroids,k,adj=0)
-  
-  for (m in c(1:4)) {
-    #update cluster label based on new centroids
-    mat[,c+1] <- assign(mat,centroids,k,adj=1) #tjrtprtm! tprtm!
-    
-    temp <- centroids
-    
-    #update centroids
-    for (i in c(1:k)) {
-      centroids[i,] <- recenter(mat,i)
-    }
-    print(mat[,c+1]) #testing
-  }
-  return(mat[,c+1])
-}
-
 ##---------- main kmeans method (dowhileloop) ----------------------------##
 # mat: input matrix
 # k : number of cluters
@@ -145,34 +112,15 @@ kmeans <- function(mat,k) {
   }
   return(mat[,c+1])
 }
-
 ##-------------------------------------------------------------------------##
+```
 
-
-# #testcase
-# data(iris);paste(iris);data <- iris;rm(iris);data <- data[,1:4]
-# kmeanloop(data[,1:2],3)
-# kmean(data[,1:2],3)
-
-
-
-##---------- graphics  ----------------------------##
-
-require(fpc); require(rattle)
-data(wine); paste(wine)
-wine <- wine[,2:14] # exclude categorical variable
-wine[,14]<-kmean(wine,3) 
+Testing kmeans on "wine" data by "fpc" cluster graphics package.
+```{r, echo=F,message=F}
+require(fpc); data(wine, package="rattle"); attach(wine)
+wine <- wine[,2:14] # exclude the categorical variable
+wine[,14]<-kmeans(wine,3)
 colnames(wine)[14] <- "cluster"
+par(mfrow=c(1,1))   
 plotcluster(wine, wine$cluster)
-
-
-
-
-
-
-
-
-
-
-
-
+```
