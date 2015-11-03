@@ -215,3 +215,7 @@ pheatmap(scale(clustered.wine2[,1:13]), cluster_rows=F,cluster_cols=F, border_co
 par(mfrow=c(1,2))
 plotcluster(wine, wine$cluster)
 plotcluster(wine, wine$V15)
+
+
+## correlations inter cluster?
+
