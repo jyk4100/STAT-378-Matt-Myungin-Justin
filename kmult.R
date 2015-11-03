@@ -14,8 +14,6 @@ L2distance <- function(vec1, vec2) {
 # centroids : centroids/mean for labeling
 # k : number of clusters
 # adj : paramter for column index matching
-
-
 assign <- function(mat, centroids, k, adj = 1){
   dist <- matrix(0,nrow=1,ncol=k)  # distance matrix
   r <- dim(mat)[1]; c<-dim(mat)[2];   # dimensions
@@ -58,7 +56,7 @@ recenter <- function(mat,centernumber){
 }
 
 
-##---------- main kmeans method (simple iteration) ---------------------------##
+##--- main kmeans method (simple iteration) ---------------------------##
 # mat: input matrix
 # k : number of cluters
 kmeanloop <- function(mat,k) {
@@ -99,10 +97,10 @@ kmeanloop <- function(mat,k) {
   return(mat[,c+1])
 }
 
-##---------- main kmeans method (dowhileloop) ----------------------------##
+##---main kmeans method (dowhileloop) ----------------------------##
 # mat: input matrix
 # k : number of cluters
-kmeans <- function(mat,k) {
+kmeansR <- function(mat,k) {
   r <- dim(mat)[1]; c <- dim(mat)[2] #dimensions of the matrix 
   adj <- 0 # for column number matching
   
@@ -150,29 +148,70 @@ kmeans <- function(mat,k) {
 
 
 # #testcase
-# data(iris);paste(iris);data <- iris;rm(iris);data <- data[,1:4]
+# data(iris);attach(iris);data <- iris;rm(iris);data <- data[,1:4]
 # kmeanloop(data[,1:2],3)
 # kmean(data[,1:2],3)
 
 
 
-##---------- graphics  ----------------------------##
+##--- graphics  -----------------------------------##
 
 require(fpc); require(rattle)
-data(wine); paste(wine)
+data(wine); attach(wine)
 wine <- wine[,2:14] # exclude categorical variable
-wine[,14]<-kmean(wine,3) 
+wine[,14]<-kmeans(wine,3) 
 colnames(wine)[14] <- "cluster"
 plotcluster(wine, wine$cluster)
 
 
 
+##--- heatmap  ----------------------------------##
+
+data(iris);attach(iris);iris <- iris[,1:4]
+scaled <- as.data.frame(scale(iris))
+heatmap(as.matrix(scaled), Colv=NA, Rowv=NA,scale='none')
+
+require(RColorBrewer)
+scaled  <- as.matrix(scaled)
+rc <- rainbow(nrow(scaled), start = 0, end = .3)
+cc <- rainbow(ncol(scaled), start = 0, end = .3)
+heatmap(scaled, Rowv=NA, Colv=NA, col=brewer.pal(9, "Blues")[1:9])
 
 
 
+##--- its 2 am 0.0 ---------------------------------##
+# cluster
+iris[,5] <- kmeans(iris,3)
+colnames(iris)[5] <- "cluster"
+require(fpc); plotcluster(iris, iris$cluster)
+
+clustered <- iris[order(iris$cluster),]
+#clustered.scaled <- scale(clustered)
+require(RColorBrewer)
+#heatmap(clustered.scaled[,1:4], Rowv=NA, Colv=NA, col=brewer.pal(9, "Blues")[1:9])
+
+require(pheatmap)
+pheatmap(clustered[,1:4], cluster_rows=F,cluster_cols=F, col=brewer.pal(9, "Blues")[1:9], border_color=NA)
+pheatmap(iris[,1:4], cluster_rows=F,cluster_cols=F, col=brewer.pal(9, "Blues")[1:9], border_color=NA)
+
+#hmmmmm.......
+
+##--- its 2 am 0.0 wine will be nice ---------------------------------##
+require(rattle)
+data(wine); attach(wine)
+wine <- wine[,2:14] # exclude categorical variable
+wine[,14]<-kmeansR(wine,3) 
+wine[,15] <- kmeans(wine,3)$cluster
+colnames(wine)[14] <- "cluster"
+
+pheatmap(scale(wine[,1:13]), cluster_rows=F,cluster_cols=F, border_color=NA)
+clustered.wine <- wine[order(wine$cluster),]
+pheatmap(scale(clustered.wine[,1:13]), cluster_rows=F,cluster_cols=F, border_color=NA)
 
 
+clustered.wine <- wine[order(wine$V15),]
+pheatmap(scale(clustered.wine2[,1:13]), cluster_rows=F,cluster_cols=F, border_color=NA)
 
-
-
-
+par(mfrow=c(1,2))
+plotcluster(wine, wine$cluster)
+plotcluster(wine, wine$V15)
