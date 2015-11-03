@@ -1,0 +1,37 @@
+---
+title: "Gibbs Sampling Part"
+author: "Myungin Kim"
+date: "November 3, 2015"
+output: html_document
+---
+```{r}
+set.seed(201511)
+Gibbsfunc<-function(B, sample){
+  
+  pXgivenY<-numeric(sample)
+  pYgivenX<-numeric(sample)
+  ini=B/2
+  #This is our 'random' initial vector(Clearly, B/2 and B/3 are smaller than B>0)
+  for(i in 1:sample){
+    xval<-qexp(runif(1)) #Using inverse transform, we obtained an x-sample value.
+    if(i==1) {
+      pXgivenY[i]<-(ini)*exp(-(ini)*xval)
+    }
+    else {
+      pXgivenY[i]<-(pYgivenX[i-1])*exp(-(pYgivenX[i-1])*xval)
+    }
+    yval<-qexp(runif(1)) #Using inverse transform, we obtained an x-sample value.
+    pYgivenX[i]<-(pXgivenY[i])*exp(-(pXgivenY[i])*yval)
+    
+  }
+  plot(pYgivenX)
+  
+  
+}
+Gibbsfunc(5,500)
+
+
+
+
+
+```
