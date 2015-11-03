@@ -159,7 +159,7 @@ kmeansR <- function(mat,k) {
 require(fpc); require(rattle)
 data(wine); attach(wine)
 wine <- wine[,2:14] # exclude categorical variable
-wine[,14]<-kmeans(wine,3) 
+wine[,14]<-kmeansR(wine,3) 
 colnames(wine)[14] <- "cluster"
 plotcluster(wine, wine$cluster)
 
@@ -181,7 +181,7 @@ heatmap(scaled, Rowv=NA, Colv=NA, col=brewer.pal(9, "Blues")[1:9])
 
 ##--- its 2 am 0.0 ---------------------------------##
 # cluster
-iris[,5] <- kmeans(iris,3)
+iris[,5] <- kmeansR(iris,3)
 colnames(iris)[5] <- "cluster"
 require(fpc); plotcluster(iris, iris$cluster)
 
