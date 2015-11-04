@@ -4,7 +4,7 @@ proposal_function <- function(phi, c = 1) {
   # distribution given curren observation, phi, and constant, c.
   prop <- 0
   reps <- 1
-  maxReps <- 10000
+  maxReps <- 100000
   
   # The function `rbeta` can return either 0 or 1, but this shouldn't happen
   # so if either a 0 or 1 is generated, we will discard it and draw again.
@@ -77,7 +77,7 @@ sample_conditional_distribution <- function(lambda, B = 5){
 }
 
 run_gibbs <- function(numIter = 500) {
-  # run_gibbs()
+  # run_gibbs(numIter) draws numIter random samples using Gibbs sampling
   m <- matrix( , nrow = numIter, ncol = 2)
   m[1,] <- runif(2)
   for (iter in 2:numIter) {
@@ -108,11 +108,56 @@ intersectionOverUnion <- function(groundTruthLabels, predictedLabels) {
   numLevels <- nlevels(groundTruthLabels)
   IOU <- 0
   for (i in 1:numLevels) {
-    IOU <- IOU + (sum(groundTruthLabels == i & predictedLabels == i) /
+    IOU <- IOU + ((sum(groundTruthLabels == i & predictedLabels == i) /
                   sum(groundTruthLabels == i | predictedLabels == i)) * 
-                  mean(groundTruthLabels == i)
-    return(IOU)
+                  mean(groundTruthLabels == i))
   }
+  return(IOU)
+}
+reorderClusts <- function(clust, newOrder) {
+  clust[clust == 1] = 4
+  clust[clust == 2] = 5
+  clust[clust == 3] = 6
+  clust[clust == 4] = newOrder[1]
+  clust[clust == 5] = newOrder[2]
+  clust[clust == 6] = newOrder[3]
+  return(clust)
+}
+
+findBestIOU <- function(groundTruthLabels, predictedLabels) {
+  curBest <- 0
+  pl123 <- as.factor(reorderClusts(predictedLabels, c(1,2,3)))
+  pl132 <- as.factor(reorderClusts(predictedLabels, c(1,3,2)))
+  pl213 <- as.factor(reorderClusts(predictedLabels, c(2,1,3)))
+  pl231 <- as.factor(reorderClusts(predictedLabels, c(2,3,1)))
+  pl312 <- as.factor(reorderClusts(predictedLabels, c(3,1,2)))
+  pl321 <- as.factor(reorderClusts(predictedLabels, c(3,2,1)))
+  
+  tmp <- intersectionOverUnion(groundTruthLabels, pl123)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  tmp <- intersectionOverUnion(groundTruthLabels, pl132)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  tmp <- intersectionOverUnion(groundTruthLabels, pl213)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  tmp <- intersectionOverUnion(groundTruthLabels, pl231)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  tmp <- intersectionOverUnion(groundTruthLabels, pl312)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  tmp <- intersectionOverUnion(groundTruthLabels, pl321)
+  if (curBest < tmp) {
+    curBest <- tmp
+  }
+  return(curBest)
 }
 
 ed <- function(x, y) {
@@ -157,6 +202,7 @@ km <- function(data, startingConditions, maxNumIters = 100) {
   # km(data, startingConditions) performs k-means clustering on data starting
   # from initial conditions in the variable startingConditions.  It returns a
   # label for each observation (row) in data.
+  
   iter <- 1
   hasConverged <- F
   
