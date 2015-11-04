@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r echo=FALSE}
-source('~/Desktop/STAT37810/HW4_helperFunctions.R')
+wd <- getwd(); source(paste0(wd,"/HW4_helperFunctions.R"))
 ```
 ## Metropolis Hastings
 ### part 1
