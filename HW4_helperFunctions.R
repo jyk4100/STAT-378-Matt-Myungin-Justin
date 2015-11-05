@@ -115,6 +115,8 @@ intersectionOverUnion <- function(groundTruthLabels, predictedLabels) {
   return(IOU)
 }
 reorderClusts <- function(clust, newOrder) {
+  # reorderClusts reassigns the values in cluster labels clust with the values
+  # specified in the vector newOrder
   clust[clust == 1] = 4
   clust[clust == 2] = 5
   clust[clust == 3] = 6
@@ -125,6 +127,10 @@ reorderClusts <- function(clust, newOrder) {
 }
 
 findBestIOU <- function(groundTruthLabels, predictedLabels) {
+  # findBestIOU(groundTruthLabels, predictedLabels) attempts to solve the 
+  # cluster correspondence problem between ground truth and predicted
+  # cluster labels. It tests each of the 6 possible orderings and
+  # returns the best IOU of the 6 orderings
   curBest <- 0
   pl123 <- as.factor(reorderClusts(predictedLabels, c(1,2,3)))
   pl132 <- as.factor(reorderClusts(predictedLabels, c(1,3,2)))
