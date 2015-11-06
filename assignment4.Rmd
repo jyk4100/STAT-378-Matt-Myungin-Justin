@@ -240,5 +240,27 @@ findBestIOU(wine[,1], clustUnScaled)
 findBestIOU(wine[,1], clustScaled)
 ```
 
-Quantitatively, we see that using the scaled data leads to much better classification accuracy.
+Quantitatively, we see that using the scaled data leads to much better classification accuracy.  Now, for the iris data:
 
+```{r}
+data(iris)
+irisData <- iris[,1:4]
+irisDataScaled <- data.frame(scale(irisData))
+
+irisClustUnScaled <- km(irisData, 3)
+irisClustScaled <- km(irisDataScaled, 3)
+```
+
+```{r, echo=F}
+par(mfrow=c(1,2))
+plotcluster(irisData, irisClustUnScaled, main="raw iris data")
+plotcluster(irisDataScaled, irisClustScaled, main="scaled iris data")
+
+findBestIOU(factor(as.numeric(iris[,5])), irisClustUnScaled)
+table(iris[,5], irisClustUnScaled)
+
+findBestIOU(factor(as.numeric(iris[,5])), irisClustScaled)
+table(iris[,5], irisClustScaled)
+```
+
+In the iris dataset, scaling does not improve separability of the clusters as much as in the wine data, although K-means on both scaled and unscaled iris data leads to fairly good classification performance.
