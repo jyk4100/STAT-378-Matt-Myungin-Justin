@@ -75,17 +75,51 @@ sample_conditional_distribution <- function(lambda, B = 5){
   # y given x
   return(qexp(runif(1, 0, pexp(B, lambda)), lambda))
 }
+###Report###
+#We use the Inverse Transform method to draw a random sample value.
+#Since x and y ranges over (0,B) for any given B>0, we need to cut off our domain for the quantile function.
+#It turns out that our domain should be (0,F(B)) where F is the cdf of exponential(lamda), and clearly this interval is a subset of (0,1).
+#We randomly pick any value from (0,F(B)) and if this random value is evaluated at exponential quantile, it will gives us some random value between 0 and B. Now, the function returns it.
+############
+
 
 run_gibbs <- function(numIter = 500) {
   # run_gibbs(numIter) draws numIter random samples using Gibbs sampling
-  m <- matrix( , nrow = numIter, ncol = 2)
-  m[1,] <- runif(2)
+  m <- matrix( , nrow = numIter, ncol = 2) #We first make a matrix which will contain our sample values.
+  m[1,] <- runif(2) #first row will be filled with initial values, which is random in (0,1).
   for (iter in 2:numIter) {
     m[iter,1] <- sample_conditional_distribution(m[iter-1, 2])
     m[iter,2] <- sample_conditional_distribution(m[iter, 1])
-  }
+  } #Iteratively, previously stored value will work as a lamda in the next rnadom sample.
   return(m)
 }
+
+
+m1<-run_gibbs(500)
+m2<-run_gibbs(5000)
+m3<-run_gibbs(50000)
+#Store the result matrix for case T=500,5000, AND 50000 into m1,m2, and m3 respectively.
+hist(m1[,1])
+hist(m2[,1])
+hist(m3[,1])
+#Histogram of x values of each case
+#From the histogram, we see that the larger the sample values, the smoother the histogram is
+
+#We will now calculate the approximate expected value:
+s1<-sum(m1[,1])
+s2<-sum(m2[,1])
+s3<-sum(m3[,1])
+#s1,s2, and s3 are sum of all the x-values for each case.
+mean1<-(1/500)*s1
+mean2<-(1/5000)*s2
+mean3<-(1/50000)*s3
+print(mean1)
+print(mean2)
+print(mean3)
+
+#We can say the sample mean of these will converge in distribution to true expectation (near 1.27 in this case).
+#Probability theory based on this approach is Strong Law of Large Numbers.
+#We might argue that T=500,5000 and 50000 can be large enough (even we can say "almost infinite") to apply this theorem.
 # end of Gibbs samping =======================================================
 
 
