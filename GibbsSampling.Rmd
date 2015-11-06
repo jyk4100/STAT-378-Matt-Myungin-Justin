@@ -6,31 +6,39 @@ output: html_document
 ---
 ```{r}
 set.seed(201511)
+ranval<-function(B){
+  a<-qexp(runif(1,0,pexp(B)))
+  return(a)
+}
+
+
 Gibbsfunc<-function(B, sample){
   
   pXgivenY<-numeric(sample)
   pYgivenX<-numeric(sample)
   ini=B/2
+  
   #This is our 'random' initial vector(Clearly, B/2 and B/3 are smaller than B>0)
   for(i in 1:sample){
-    xval<-qexp(runif(1)) #Using inverse transform, we obtained an x-sample value.
+    #xval<-qexp(runif(1)) #Using inverse transform, we obtained an x-sample value.
     if(i==1) {
-      pXgivenY[i]<-(ini)*exp(-(ini)*xval)
+      pXgivenY[i]<-(ini)*exp(-(ini)*ranval(B))
     }
     else {
-      pXgivenY[i]<-(pYgivenX[i-1])*exp(-(pYgivenX[i-1])*xval)
+      pXgivenY[i]<-(pYgivenX[i-1])*exp(-(pYgivenX[i-1])*ranval(B))
     }
-    yval<-qexp(runif(1)) #Using inverse transform, we obtained an x-sample value.
-    pYgivenX[i]<-(pXgivenY[i])*exp(-(pXgivenY[i])*yval)
+    #yval<-qexp(runif(1)) #Using the inverse transform, we obtained an x-sample value.
+    pYgivenX[i]<-(pXgivenY[i])*exp(-(pXgivenY[i])*ranval(B))
     
   }
-  plot(pYgivenX)
+  plot(pXgivenY)
   
   
 }
 Gibbsfunc(5,500)
 
-
+Gibbsfunc(5,5000)
+Gibbsfunc(5,50000)
 
 
 
