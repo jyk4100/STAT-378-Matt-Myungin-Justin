@@ -172,6 +172,7 @@ ks.test(mc10, "pbeta", 6, 4)
 
 We see that smaller $c$ values have smaller KS statistics suggesting that they fit the theoretical beta(6,4) distribution better than larger $c$ values which is consistent with our qualitative observations.
 
+\newpage
 
 ## Gibbs
 
@@ -183,7 +184,9 @@ The Gibbs sampler algorithm is similar to the MH algorithm and can be written do
 $$P(s_{j}^{(i+1)} | s_{0}^{(i+1)}, \ldots, s_{j-1}^{(i+1)}, s_{j+1}^{(i)}, \ldots, s_{n}^{(i)}) $$
 4.  Repeat $k$ times 
 
-Based on this algorithmic description, we'll need to implement a function to draw from the full conditional distribution.  The conditional distribution of $y$ given $x$ is the same as the conditional distribution of $x$ given $y$ up to a constant of proportionality, so we'll only need to implement one conditional function.  Also, we note that $P(y|x) = P(x|y)$ are proportional to an exponential distribution on the interval $[0, B]$.  In class, we talked about inverse transform sampling to use uniform random numbers to sample from any arbitrary distribution.  We will now explain how we used this concept to draw random numbers from the specified conditional distribution.  Generally, we would plug Unif(0,1) random numbers into the inverse CDF of an arbitrary distribution to sample from it.  Here, we instead draw uniform random numbers from the interval $[0,Y]$ where $Y$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.*LATEX ADD HERE?*  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution.
+Based on this algorithmic description, we'll need to implement a function to draw from the full conditional distribution.  The conditional distribution of $Y|X$ is the same as the conditional distribution of $X|Y$ up to a constant of proportionality, so we'll only need to implement one conditional function.  Also note that $P(y|x) = P(x|y)$ are proportional to an exponential distribution on the interval $[0, B]$.  In class, we talked about inverse transform sampling to use uniform random numbers to sample from any arbitrary distribution.  We can find the conditional density $X|Y$ (or $Y|X$) and then find the cumulative distribution function, inverse of which can be used to draw random number of our interst.   
+
+Alternatively, we can solve for the "end point" of the uniform distribution i.e. $u$ such that $F_{x}^{-1}(u)\in[0,B]$. Given the cdf of exponential distribution, $F_{x}(u)=1-e^{-yu}$, the inverse cdf is $F_{x}^{-1}(u)=-\frac{1}{y}log(1-u)$. Letting $B=-\frac{1}{y}log(1-u)$ and solving for $u$ gives $u=1-e^{-yB}=F_{x}(B)$. Therefore, we can draw uniform random numbers from the interval $[0,u]$ where $u$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution.
 
 In code, this can be expressed in a single line as follows:
 
@@ -197,7 +200,6 @@ sample_conditional_distribution <- function(lambda, B = 5){
   # c <- 1/(1-exp(-lambda*B))
   # adjusting constant for making exponential 0 < x < B a density
   # return((lambda^-1) * log(c/(c-unif))) # inverse transformation with quantile function
-
 }
 ```
     
@@ -227,6 +229,8 @@ print(mean(s500[,1]))
 print(mean(s5000[,1]))
 print(mean(s50000[,1]))
 ```
+
+\newpage
 
 
 ## K-Means
