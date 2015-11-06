@@ -189,7 +189,8 @@ $$P(s_{j}^{(i+1)} | s_{0}^{(i+1)}, \ldots, s_{j-1}^{(i+1)}, s_{j+1}^{(i)}, \ldot
 
 Based on this algorithmic description, we'll need to implement a function to draw from the full conditional distribution.  The conditional distribution of $Y|X$ is the same as the conditional distribution of $X|Y$ up to a constant of proportionality, so we'll only need to implement one conditional function.  Also note that $P(y|x) = P(x|y)$ are proportional to an exponential distribution on the interval $[0, B]$.  In class, we talked about inverse transform sampling to use uniform random numbers to sample from any arbitrary distribution.  We can find the conditional density $X|Y$ (or $Y|X$) and then find the cumulative distribution function, inverse of which can be used to draw random number of our interst.   
 
-Alternatively, we can solve for the "end point" of the uniform distribution i.e. $u$ such that $F_{x}^{-1}(u) = B$ then $u=F_{x}(B)$. Therefore, we can draw uniform random numbers from the interval $[0,u]$ where $u$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution.
+Alternatively, we can solve for the "end point" of the uniform distribution i.e. $u$ such that $F_{x}^{-1}(u) = B$ then $u=F_{x}(B)$. Therefore, we can draw uniform random numbers from the interval $[0,u]$ where $u$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution. We will use the R built-in function (qexp(p,rate)) but note that the cumulative distirubtion function of an exponential distribution is $F_{x}(x)=1-e^{-x\lambda}$ and the inverse cdf (quantile function) is $F_{x}^{-1}(p)=Q(p)=-\frac{1}{\lambda}ln(1-p)$.
+
 
 In code, this can be expressed in a single line as follows:
 
@@ -233,13 +234,13 @@ s50000 <- run_gibbs(50000)
 par(mfrow = c(1,3))
 hist(s500, main="Histogram (T=500)", ylab="Frequency", xlab = "X", cex.main = 0.9, cex.lab=0.9, 
      freq = F, ylim = c(0,1.0))
-abline(v = c(mean(s500[,1])), col = "red", lty = 2, lwd = 1)
+abline(v = c(mean(s500[,1])), col = "red", lty = 2, lwd = 0.8)
 hist(s5000, main="Histogram (T=5000)", ylab="Frequency", xlab = "X", cex.main = 0.9, cex.lab=0.9,
      freq = F, ylim = c(0,1.0))
-abline(v = c(mean(s5000[,1])), col = "red", lty = 2, lwd = 1)
+abline(v = c(mean(s5000[,1])), col = "red", lty = 2, lwd = 0.8)
 hist(s50000,  main="Histogram (T=50000)", ylab="Frequency", xlab = "X", cex.main = 0.9, cex.lab=0.9,
      freq = F, ylim = c(0,1.0))
-abline(v = c(mean(s50000[,1])), col = "red", lty = 2, lwd = 1)
+abline(v = c(mean(s50000[,1])), col = "red", lty = 2, lwd = 0.7) #optical illusion lol
 ```
 ```{R}
 print(mean(s500[,1]))
