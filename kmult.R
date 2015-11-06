@@ -165,21 +165,7 @@ plotcluster(wine, wine$cluster)
 
 
 
-##--- heatmap  ----------------------------------##
-
-data(iris);attach(iris);iris <- iris[,1:4]
-scaled <- as.data.frame(scale(iris))
-heatmap(as.matrix(scaled), Colv=NA, Rowv=NA,scale='none')
-
-require(RColorBrewer)
-scaled  <- as.matrix(scaled)
-rc <- rainbow(nrow(scaled), start = 0, end = .3)
-cc <- rainbow(ncol(scaled), start = 0, end = .3)
-heatmap(scaled, Rowv=NA, Colv=NA, col=brewer.pal(9, "Blues")[1:9])
-
-
-
-##--- its 2 am 0.0 ---------------------------------##
+##--- heatmap trial 1 ---------------------------------##
 # cluster
 iris[,5] <- kmeansR(iris,3)
 colnames(iris)[5] <- "cluster"
@@ -196,7 +182,7 @@ pheatmap(iris[,1:4], cluster_rows=F,cluster_cols=F, col=brewer.pal(9, "Blues")[1
 
 #hmmmmm.......
 
-##--- its 2 am 0.0 wine will be nice ---------------------------------##
+##--- heatmap trial 2 ---------------------------------##
 require(rattle)
 data(wine); attach(wine)
 wine <- wine[,2:14] # exclude categorical variable
@@ -213,9 +199,20 @@ clustered.wine <- wine[order(wine$V15),]
 pheatmap(scale(clustered.wine2[,1:13]), cluster_rows=F,cluster_cols=F, border_color=NA)
 
 par(mfrow=c(1,2))
-plotcluster(wine, wine$cluster)
-plotcluster(wine, wine$V15)
+plotcluster(wine[1:13], wine$cluster)
 
 
 ## correlations inter cluster?
+# correlation matrix
+cor(iris[,1:4])
+sum(abs(cor(iris[,1:4])-4))
 
+cor(iris[iris$V5==1,][,1:4])
+sum(abs(cor(iris[iris$V5==1,][,1:4])-4))
+
+# not significant
+
+## within group ss
+cluster1 <- iris[(iris[,5] ==1),]
+mean1 <- apply(as.matrix(cluster1[,1:4]),2,mean)
+SS1 <- sum((cluster1 - mean1)^2)
