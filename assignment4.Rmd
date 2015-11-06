@@ -1,7 +1,6 @@
 ---
-title: "homework 4"
-author: "Matt Best"
-date: "October 26, 2015"
+title: "STAT 37810 Assignment 4"
+author: "Matt Best, Myungin Kim, Justin Kim"
 output: pdf_document
 ---
 
