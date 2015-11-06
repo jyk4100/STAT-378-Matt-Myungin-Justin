@@ -20,78 +20,83 @@ Because our proposal distribution is not symmetric, the second term in calculati
 
 Now that we have provided a high-level overview of the algorithm, we will begin to describe our implementation.  First, we wrote individual functions to compute $P(x)$ and $Q(x^{*}|x_{n})$ detailed below:
 
-    stationary_prob <- function(x, a = 6, b = 4) {
-      # Returns the probability that an observation came from a beta distribution
-      # with scale parameters a and b
-      return(dbeta(x, a, b))
-    }
+```{R}
+stationary_prob <- function(x, a = 6, b = 4) {
+  # Returns the probability that an observation came from a beta distribution
+  # with scale parameters a and b
+  return(dbeta(x, a, b))
+}
 
-    proposal_prob <- function(x, phi, c = 1) {
-      # Returns the probability that a proposal, x, came from a beta distribution
-      # with scale parameters c*phi, and c * (1-phi)
-      return(dbeta(x, c * phi, c * (1 - phi)))
-    }
+proposal_prob <- function(x, phi, c = 1) {
+  # Returns the probability that a proposal, x, came from a beta distribution
+  # with scale parameters c*phi, and c * (1-phi)
+  return(dbeta(x, c * phi, c * (1 - phi)))
+}
+```
 
 where `stationary_prob` computes $P(x)$ and `proposal_prob` computes $Q(x^{*}|x_{n})$.  Next,
 we specified a function to make random draws from the proposal distribution:
 
-    proposal_function <- function(phi, c = 1) {
-      # proposal_function(phi, c) will return a random draw from the proposal
-      # distribution given curren observation, phi, and constant, c.
-      prop <- 0
-      reps <- 1
-      maxReps <- 10000
-      
-      # The function `rbeta` can return either 0 or 1, but this shouldn't happen
-      # so if either a 0 or 1 is generated, we will discard it and draw again.
-      while ((prop == 0 | prop == 1) & reps < maxReps) {
-        prop <- rbeta(1, c * phi, c * (1 - phi))
-        reps <- reps + 1
-      }
-      if (reps == maxReps) {
-        stop("Sampler is jammed.")
-      }
-      return(prop)
-    }
+```{R}
+proposal_function <- function(phi, c = 1) {
+  # proposal_function(phi, c) will return a random draw from the proposal
+  # distribution given curren observation, phi, and constant, c.
+  prop <- 0
+  reps <- 1
+  maxReps <- 10000
+  
+  # The function `rbeta` can return either 0 or 1, but this shouldn't happen
+  # so if either a 0 or 1 is generated, we will discard it and draw again.
+  while ((prop == 0 | prop == 1) & reps < maxReps) {
+    prop <- rbeta(1, c * phi, c * (1 - phi))
+    reps <- reps + 1
+  }
+  if (reps == maxReps) {
+    stop("Sampler is jammed.")
+  }
+  return(prop)
+}
+```
     
 Now, we have all the helper functions that we need to implement the main MH algorithm as detailed in the function `run_mh`
 
-    run_mh <- function(c = 1, startingPoint = runif(1), numIters = 10000, burnIn = 0, thinning = 0) {
-      # run_mh(c, startingPoint, numIters, burnIn, thinning) will use the 
-      # Metropolis-Hastings algorithm to sample from a beta distribution with
-      # scale parameters a = 6 and b = 4.  The width parameter, c, adjusts the
-      # width of the proposal distribution.  Optional arguments include the 
-      # starting position of the Markov chain, startingPoint; the number of
-      # iterations in the Markov chain, numIters; the number of samples to
-      # discard for burn in, burnIn; and the number of samples that should be
-      # discarded between consecutive draws of the chain, thinning.
-      # The default value of thinning does not discard any samples.
-      # run_mh returns the chain after discarding elements due to burn in and
-      # thinning.
-      m <- matrix( , nrow = numIters)
-      xprev <- startingPoint
-      
-      for (iter in 1:numIters) {
-        proposal <- proposal_function(xprev)
-        
-        a1 <- stationary_prob(proposal) / stationary_prob(xprev)
-        a2 <- proposal_prob(xprev, proposal, c) / proposal_prob(proposal, xprev, c)
-        
-        a <- a1 * a2
-        
-        if (a > 1) {
-          xprev <- proposal
-        } else {
-          if (runif(1) < a) {
-            xprev <- proposal
-          }
-        }
-        m[iter] <- xprev
+```{R}
+run_mh <- function(c = 1, startingPoint = runif(1), numIters = 10000, burnIn = 0, thinning = 0) {
+  # run_mh(c, startingPoint, numIters, burnIn, thinning) will use the 
+  # Metropolis-Hastings algorithm to sample from a beta distribution with
+  # scale parameters a = 6 and b = 4.  The width parameter, c, adjusts the
+  # width of the proposal distribution.  Optional arguments include the 
+  # starting position of the Markov chain, startingPoint; the number of
+  # iterations in the Markov chain, numIters; the number of samples to
+  # discard for burn in, burnIn; and the number of samples that should be
+  # discarded between consecutive draws of the chain, thinning.
+  # The default value of thinning does not discard any samples.
+  # run_mh returns the chain after discarding elements due to burn in and
+  # thinning.
+  m <- matrix( , nrow = numIters)
+  xprev <- startingPoint
+  
+  for (iter in 1:numIters) {
+    proposal <- proposal_function(xprev)
+    
+    a1 <- stationary_prob(proposal) / stationary_prob(xprev)
+    a2 <- proposal_prob(xprev, proposal, c) / proposal_prob(proposal, xprev, c)
+    
+    a <- a1 * a2
+    
+    if (a > 1) {
+      xprev <- proposal
+    } else {
+      if (runif(1) < a) {
+        xprev <- proposal
       }
-      m <- m[seq(burnIn+1, numIters, by=(thinning+1))]
-      return(m)
     }
-
+    m[iter] <- xprev
+  }
+  m <- m[seq(burnIn+1, numIters, by=(thinning+1))]
+  return(m)
+}
+```
 
 
 ### part 2
@@ -159,7 +164,7 @@ Visually, the raw trace looks fairly stationary suggesting there is not an appre
 
 Quantitatively, again, we can use the KS-stat to compare the different $c$ values. 
 
-```{r}
+```{r, message = F, warnings = F}
 ks.test(mc01, "pbeta", 6, 4)
 ks.test(mc25, "pbeta", 6, 4)
 ks.test(mc10, "pbeta", 6, 4)
@@ -178,26 +183,38 @@ The Gibbs sampler algorithm is similar to the MH algorithm and can be written do
 $$P(s_{j}^{(i+1)} | s_{0}^{(i+1)}, \ldots, s_{j-1}^{(i+1)}, s_{j+1}^{(i)}, \ldots, s_{n}^{(i)}) $$
 4.  Repeat $k$ times 
 
-Based on this algorithmic description, we'll need to implement a function to draw from the full conditional distribution.  The conditional distribution of $y$ given $x$ is the same as the conditional distribution of $x$ given $y$ up to a constant of proportionality, so we'll only need to implement one conditional function.  Also, we note that $P(y|x) = P(x|y)$ are proportional to an exponential distribution on the interval $[0, B]$.  In class, we talked about inverse transform sampling to use uniform random numbers to sample from any arbitrary distribution.  We will now explain how we used this concept to draw random numbers from the specified conditional distribution.  Generally, we would plug Unif(0,1) random numbers into the inverse CDF of an arbitrary distribution to sample from it.  Here, we instead draw random numbers from the interval Unif(0, $Y$) where $Y$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution.  In code, this can be expressed in a single line as follows:
+Based on this algorithmic description, we'll need to implement a function to draw from the full conditional distribution.  The conditional distribution of $y$ given $x$ is the same as the conditional distribution of $x$ given $y$ up to a constant of proportionality, so we'll only need to implement one conditional function.  Also, we note that $P(y|x) = P(x|y)$ are proportional to an exponential distribution on the interval $[0, B]$.  In class, we talked about inverse transform sampling to use uniform random numbers to sample from any arbitrary distribution.  We will now explain how we used this concept to draw random numbers from the specified conditional distribution.  Generally, we would plug Unif(0,1) random numbers into the inverse CDF of an arbitrary distribution to sample from it.  Here, we instead draw uniform random numbers from the interval $[0,Y]$ where $Y$ is the value of the CDF of an exponential distribution with rate $\lambda$ evaluated at point $B$.*LATEX ADD HERE?*  We then plug those uniform random draws back into the inverse CDF of the exponential distribution with rate $\lambda$ to sample from the conditional distribution.
 
-    sample_conditional_distribution <- function(lambda, B = 5){
-      # Draws a random sample from the conditional distribution of x given y or 
-      # y given x
-      return(qexp(runif(1, 0, pexp(B, lambda)), lambda))
-    }
+In code, this can be expressed in a single line as follows:
+
+```{R}
+sample_conditional_distribution <- function(lambda, B = 5){
+  # Draws a random sample from the conditional distribution of x given y or y given x
+  return(qexp(runif(1, 0, pexp(B, lambda)), lambda))
+
+  # Equivalently, we can do the inverse tranform with [0,1] uniform by adjusting the conditional density
+  # unif <- runif(1,0,1) # draw from unif(0,1) for transformations
+  # c <- 1/(1-exp(-lambda*B))
+  # adjusting constant for making exponential 0 < x < B a density
+  # return((lambda^-1) * log(c/(c-unif))) # inverse transformation with quantile function
+
+}
+```
     
 Now, to show the full Gibbs sampling algorithm:
 
-    run_gibbs <- function(numIter = 500) {
-      # run_gibbs(numIter) draws numIter random samples using Gibbs sampling
-      m <- matrix( , nrow = numIter, ncol = 2)
-      m[1,] <- runif(2)
-      for (iter in 2:numIter) {
-        m[iter,1] <- sample_conditional_distribution(m[iter-1, 2])
-        m[iter,2] <- sample_conditional_distribution(m[iter, 1])
-      }
-      return(m)
-    }
+```{R}
+run_gibbs <- function(numIter = 500) {
+  # run_gibbs(numIter) draws numIter random samples using Gibbs sampling
+  m <- matrix( , nrow = numIter, ncol = 2)
+  m[1,] <- runif(2)
+  for (iter in 2:numIter) {
+    m[iter,1] <- sample_conditional_distribution(m[iter-1, 2])
+    m[iter,2] <- sample_conditional_distribution(m[iter, 1])
+  }
+  return(m)
+}
+```
 
 To calculate the first moment of the marginal distribution of $X$, we can simply average over observations of the $X$ component from our random sample, e.g.:
 
@@ -229,6 +246,8 @@ par(mfrow=c(1,2))
 plotcluster(trainData, clustUnScaled, main="raw wine data")
 plotcluster(trainDataScaled, clustScaled, main="scaled wine data")
 ```
+
+The fpc cluster plot have the dc1 and dc2 on x and y axis, respectively.  Consider the dimensionality reduction of the wine data (13 continuous features) by linear combination of features.  Such process is called Linear Discriminant Analysis (LDA) and returns the discriminant coordinates which are linear combinations of existing features that best explains the data.  The dc1 and dc2 are 1st and 2nd discriminant coordinates.  The fpc cluster plot suggest the Kmeans function (km) does cluster the wine data pretty well. Notice points that are closed to one another in dc1-dc2 space are clustered togheter.
 
 From visual inspection of the plots, both raw and scaled data are separated by the 13 features.  To quantify just how well the data were classified into each of the categories, we used the intersection over union metric described in the [computer vision literature](http://host.robots.ox.ac.uk:8080/pascal/VOC/voc2012/devkit_doc.pdf).  We also use this time to mention that there is a model identifiability issue, that is, there is no way to be sure that what we defined to be cluster 1 is also cluster 1 in the wine data.  Accordingly, we check all 6 possible reorderings of cluster labels and choose the one with the highest IOU.
 
